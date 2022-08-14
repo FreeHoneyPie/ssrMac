@@ -52,7 +52,7 @@ static SWBAppDelegate *appDelegate;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [self installHelper];
 
-    _listenPort = DEFAULT_BIND_PORT;
+    _listenPort = 5733;//DEFAULT_BIND_PORT;
     
     NSAppleEventManager *m = [NSAppleEventManager sharedAppleEventManager];
     [m setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
@@ -117,6 +117,13 @@ static SWBAppDelegate *appDelegate;
     [menu addItem:[NSMenuItem separatorItem]];
     [menu addItemWithTitle:NSLocalizedString(@"Quit", nil) action:@selector(exit) keyEquivalent:@""];
     self.item.menu = menu;
+    
+    do {
+        if (net_port_is_free(DEFAULT_BIND_HOST, (uint16_t)_listenPort)) {
+            break;
+        }
+        ++_listenPort;
+    } while(true);
 
     [self initializeProxy];
     [self updateMenu];
@@ -201,7 +208,9 @@ static SWBAppDelegate *appDelegate;
 
 - (void) updateMenu {
     if (self.useProxy) {
-        statusMenuItem.title = NSLocalizedString(@"ShadowsocksR: On", nil);
+        NSString *status = NSLocalizedString(@"ShadowsocksR: On", nil);
+        status = [status stringByAppendingFormat: @" - port %ld", _listenPort];
+        statusMenuItem.title = status; //NSLocalizedString(@"ShadowsocksR: On", nil);
         enableMenuItem.title = NSLocalizedString(@"Turn ShadowsocksR Off", nil);
         NSImage *image = [NSImage imageNamed:@"menu_icon"];
         [image setTemplate:YES];
@@ -460,12 +469,15 @@ void onPACChange(
         mode = @"off";
     }
     
-    do {
-        if (net_port_is_free(DEFAULT_BIND_HOST, (uint16_t)_listenPort)) {
-            break;
-        }
-        ++_listenPort;
-    } while(true);
+//    do {
+//        if (net_port_is_free(DEFAULT_BIND_HOST, (uint16_t)_listenPort)) {
+//            break;
+//        }
+//        ++_listenPort;
+//    } while(true);
+#ifdef DEBUG
+    NSLog(@"------------XSWEI Listen on: %ld",_listenPort);
+#endif
 
     NSString *portStr = [NSString stringWithFormat:@"%ld", (long)_listenPort];
 

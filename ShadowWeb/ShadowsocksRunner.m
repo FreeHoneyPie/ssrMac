@@ -100,6 +100,9 @@ void ssr_stop(void) {
     NSString *path = [NSBundle mainBundle].executablePath;
     
     unsigned short listenPort = (unsigned short) [appDelegate toggleSystemProxyExternal];
+#ifdef DEBUG
+    NSLog(@"<<<<<EXTERNAL: Listen on %d",listenPort);
+#endif
     
     BOOL result = NO;
     if (![ShadowsocksRunner settingsAreNotComplete]) {
